@@ -1,0 +1,1740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Home Base</title>
+
+<!-- Favicon — inline SVG as data URI -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231E3A5F'/><path d='M16 7L5 16h3v9h7v-6h2v6h7V16h3z' fill='%237EC8E3'/></svg>" />
+
+<!-- iOS home screen icon -->
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='40' fill='%231E3A5F'/><path d='M90 30L20 88h18v62h40v-34h4v34h40V88h18z' fill='%237EC8E3'/></svg>" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Home Base" />
+<meta name="theme-color" content="#1E3A5F" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet" />
+
+<style>
+/* ── TOKENS ─────────────────────────────────────────── */
+:root {
+  --bg:          #EFF4F9;
+  --surface:     #FFFFFF;
+  --navy:        #1E3A5F;
+  --navy-light:  #274E7F;
+  --blue:        #4A90C4;
+  --blue-light:  #7EC8E3;
+  --blue-pale:   #D6EAF8;
+  --text:        #1F2937;
+  --text-muted:  #6B7280;
+  --border:      #E2ECF5;
+  --danger:      #DC2626;
+  --success:     #16A34A;
+  --warning:     #D97706;
+
+  --cat-kitchen:   #4A90C4;
+  --cat-laundry:   #7B68EE;
+  --cat-hvac:      #2E8B57;
+  --cat-garage:    #D97706;
+  --cat-computers: #DC6B2F;
+  --cat-other:     #9CA3AF;
+
+  --radius: 10px;
+  --shadow: 0 1px 4px rgba(30,58,95,0.08), 0 4px 16px rgba(30,58,95,0.06);
+}
+
+/* ── RESET ───────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+button { font-family: inherit; cursor: pointer; border: none; background: none; }
+input, select, textarea { font-family: inherit; }
+a { color: inherit; text-decoration: none; }
+
+/* ── LAYOUT ──────────────────────────────────────────── */
+.app { display: flex; min-height: 100vh; }
+
+.sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  background: var(--navy);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 100;
+  overflow-y: auto;
+}
+
+.sidebar-logo {
+  padding: 24px 20px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.sidebar-logo .wordmark {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  color: #fff;
+}
+.sidebar-logo .tagline {
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+  margin-top: 3px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.house-selector {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.house-selector label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255,255,255,0.45);
+  display: block;
+  margin-bottom: 6px;
+}
+.house-selector select {
+  width: 100%;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 6px;
+  color: #fff;
+  padding: 7px 10px;
+  font-size: 14px;
+  font-weight: 500;
+  appearance: none;
+  cursor: pointer;
+}
+.house-selector select option { background: var(--navy); color: #fff; }
+
+.sidebar-nav { padding: 12px 0; flex: 1; }
+.nav-section-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255,255,255,0.35);
+  padding: 10px 20px 4px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.7);
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: all 0.15s;
+}
+.nav-item:hover { background: rgba(255,255,255,0.06); color: #fff; }
+.nav-item.active { color: #fff; border-left-color: var(--blue-light); background: rgba(255,255,255,0.08); }
+.nav-item .nav-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.nav-item .nav-count {
+  margin-left: auto;
+  background: rgba(255,255,255,0.12);
+  border-radius: 10px;
+  padding: 1px 7px;
+  font-size: 11px;
+  color: rgba(255,255,255,0.6);
+}
+
+.main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+
+.topbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 28px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.topbar h1 { font-size: 18px; font-weight: 600; color: var(--navy); flex: 1; }
+.topbar .house-badge {
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--blue-pale);
+  color: var(--navy);
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+.content { padding: 28px; flex: 1; }
+
+/* ── BUTTONS ─────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 18px;
+  border-radius: 7px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.15s;
+  cursor: pointer;
+  border: none;
+}
+.btn-primary { background: var(--navy); color: #fff; }
+.btn-primary:hover { background: var(--navy-light); }
+.btn-secondary { background: var(--blue-pale); color: var(--navy); }
+.btn-secondary:hover { background: #C5DEF0; }
+.btn-ghost { background: transparent; color: var(--text-muted); border: 1px solid var(--border); }
+.btn-ghost:hover { border-color: var(--blue); color: var(--navy); }
+.btn-danger { background: #FEE2E2; color: var(--danger); }
+.btn-danger:hover { background: #FECACA; }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+.btn-icon { padding: 8px; border-radius: 7px; }
+
+/* ── CARDS ───────────────────────────────────────────── */
+.appliance-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.appliance-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border-left: 4px solid var(--blue);
+  overflow: hidden;
+  transition: transform 0.15s, box-shadow 0.15s;
+  cursor: pointer;
+}
+.appliance-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(30,58,95,0.12), 0 8px 28px rgba(30,58,95,0.08);
+}
+.appliance-card .card-body { padding: 18px 18px 14px; }
+.appliance-card .card-cat {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.appliance-card .card-name { font-size: 16px; font-weight: 600; color: var(--navy); margin-bottom: 2px; }
+.appliance-card .card-model { font-size: 13px; color: var(--text-muted); }
+.appliance-card .card-footer {
+  padding: 10px 18px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ── EMPTY STATE ─────────────────────────────────────── */
+.empty-state { text-align: center; padding: 64px 24px; }
+.empty-state .empty-icon { font-size: 48px; margin-bottom: 16px; }
+.empty-state h3 { font-size: 18px; font-weight: 600; color: var(--navy); margin-bottom: 8px; }
+.empty-state p { color: var(--text-muted); font-size: 14px; max-width: 300px; margin: 0 auto 24px; }
+
+/* ── SEARCH ──────────────────────────────────────────── */
+.search-row { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+.search-wrap { flex: 1; position: relative; }
+.search-wrap input {
+  width: 100%;
+  padding: 9px 14px 9px 38px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
+  background: var(--surface);
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.search-wrap input:focus { border-color: var(--blue); }
+.search-wrap .search-icon {
+  position: absolute;
+  left: 12px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+/* ── MODAL ───────────────────────────────────────────── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15,23,42,0.5);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--surface);
+  border-radius: 14px;
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(15,23,42,0.25);
+}
+.modal-header {
+  padding: 22px 24px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.modal-header h2 { font-size: 18px; font-weight: 600; color: var(--navy); }
+.modal-close {
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 6px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+  transition: background 0.15s;
+}
+.modal-close:hover { background: var(--bg); }
+.modal-body { padding: 22px 24px; }
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+/* ── FORM ────────────────────────────────────────────── */
+.form-group { margin-bottom: 18px; }
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--surface);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus { border-color: var(--blue); }
+.form-group textarea { resize: vertical; min-height: 80px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-hint { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+/* ── PHOTO SCAN ZONE ─────────────────────────────────── */
+.scan-zone {
+  border: 2px dashed var(--border);
+  border-radius: 10px;
+  padding: 28px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s;
+  background: var(--bg);
+  margin-bottom: 18px;
+}
+.scan-zone:hover { border-color: var(--blue); background: var(--blue-pale); }
+.scan-zone .scan-icon { font-size: 32px; margin-bottom: 8px; }
+.scan-zone p { font-size: 13px; color: var(--text-muted); }
+.scan-zone p strong { color: var(--navy); }
+.scan-zone input { display: none; }
+
+.ai-thinking {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  background: var(--blue-pale);
+  border: 1px solid var(--blue);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 13px;
+  color: var(--navy);
+  margin-bottom: 16px;
+}
+.ai-thinking.show { display: flex; }
+.ai-thinking .spinner {
+  width: 16px; height: 16px;
+  border: 2px solid var(--blue);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── DETAIL PANEL ────────────────────────────────────── */
+.detail-panel {
+  display: none;
+  position: fixed;
+  top: 0; right: 0; bottom: 0;
+  width: 480px;
+  background: var(--surface);
+  box-shadow: -4px 0 30px rgba(15,23,42,0.12);
+  z-index: 200;
+  flex-direction: column;
+  overflow: hidden;
+}
+.detail-panel.open { display: flex; }
+.detail-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+.detail-header-info { flex: 1; }
+.detail-header-info .detail-cat {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--blue);
+  margin-bottom: 3px;
+}
+.detail-header-info h2 { font-size: 20px; font-weight: 600; color: var(--navy); }
+.detail-header-info .detail-model { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+.detail-close {
+  width: 34px; height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 7px; font-size: 20px; color: var(--text-muted); cursor: pointer;
+  transition: background 0.15s;
+}
+.detail-close:hover { background: var(--bg); }
+
+.detail-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  padding: 0 20px;
+}
+.detail-tab {
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.detail-tab.active { color: var(--navy); border-bottom-color: var(--blue); font-weight: 600; }
+.detail-tab:hover:not(.active) { color: var(--text); }
+
+.detail-body { flex: 1; overflow-y: auto; padding: 20px 24px; }
+
+.info-section { margin-bottom: 22px; }
+.info-section h3 {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  gap: 12px;
+}
+.info-row:last-child { border-bottom: none; }
+.info-row .info-label { color: var(--text-muted); flex-shrink: 0; }
+.info-row .info-value { font-weight: 500; text-align: right; word-break: break-all; }
+
+.log-entry { padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.log-entry:last-child { border-bottom: none; }
+.log-entry .log-date { font-weight: 600; color: var(--navy); margin-bottom: 2px; }
+.log-entry .log-type {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 1px 7px;
+  border-radius: 4px;
+  background: var(--blue-pale);
+  color: var(--navy);
+  margin-bottom: 4px;
+}
+.log-entry .log-notes { color: var(--text-muted); }
+.log-entry .log-cost { font-weight: 600; color: var(--success); margin-top: 2px; }
+
+.part-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.part-row:last-child { border-bottom: none; }
+.part-row .part-name { flex: 1; font-weight: 500; }
+.part-row .part-number {
+  font-family: monospace;
+  font-size: 12px;
+  background: var(--bg);
+  padding: 2px 8px;
+  border-radius: 4px;
+  color: var(--text-muted);
+}
+
+/* ── AI CHAT ─────────────────────────────────────────── */
+.ai-chat { display: flex; flex-direction: column; height: 100%; gap: 12px; }
+.chat-messages { flex: 1; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; padding-bottom: 4px; }
+.chat-msg {
+  max-width: 90%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.chat-msg.user { align-self: flex-end; background: var(--navy); color: #fff; border-radius: 10px 10px 2px 10px; }
+.chat-msg.ai { align-self: flex-start; background: var(--bg); color: var(--text); border-radius: 10px 10px 10px 2px; border: 1px solid var(--border); }
+.chat-input-row { display: flex; gap: 8px; align-items: flex-end; }
+.chat-input-row textarea {
+  flex: 1;
+  resize: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 13px;
+  min-height: 40px;
+  max-height: 100px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.chat-input-row textarea:focus { border-color: var(--blue); }
+.manual-notice {
+  background: var(--blue-pale);
+  border: 1px solid var(--blue);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 12px;
+  color: var(--navy);
+  margin-bottom: 8px;
+}
+
+/* ── ADD TABS ────────────────────────────────────────── */
+.add-tabs { display: flex; gap: 4px; margin-bottom: 20px; background: var(--bg); padding: 4px; border-radius: 8px; }
+.add-tab {
+  flex: 1; padding: 8px; text-align: center;
+  border-radius: 6px; font-size: 13px; font-weight: 500;
+  color: var(--text-muted); cursor: pointer; transition: all 0.15s;
+}
+.add-tab.active { background: var(--surface); color: var(--navy); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+
+/* ── STATS ───────────────────────────────────────────── */
+.stats-row { display: flex; gap: 14px; margin-bottom: 24px; }
+.stat-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  flex: 1;
+  box-shadow: var(--shadow);
+}
+.stat-card .stat-val { font-size: 28px; font-weight: 600; color: var(--navy); line-height: 1; }
+.stat-card .stat-label { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+/* ── MANUAL ──────────────────────────────────────────── */
+.manual-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+}
+.manual-card .manual-icon { font-size: 22px; }
+.manual-card .manual-info { flex: 1; }
+.manual-card .manual-name { font-weight: 600; color: var(--navy); }
+.manual-card .manual-type { font-size: 11px; color: var(--text-muted); }
+
+/* ── TOAST ───────────────────────────────────────────── */
+.toast {
+  position: fixed;
+  bottom: 24px; right: 24px;
+  background: var(--navy);
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  z-index: 9999;
+  transform: translateY(80px);
+  opacity: 0;
+  transition: all 0.3s;
+  pointer-events: none;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.success { background: var(--success); }
+.toast.error { background: var(--danger); }
+
+/* ── MOBILE ──────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .sidebar { transform: translateX(-100%); transition: transform 0.25s; width: 260px; }
+  .sidebar.open { transform: translateX(0); }
+  .main { margin-left: 0; }
+  .mobile-header { display: flex !important; align-items: center; padding: 14px 16px; background: var(--navy); gap: 12px; }
+  .mobile-header .wordmark { font-family: 'Playfair Display', serif; font-size: 20px; color: #fff; flex: 1; }
+  .content { padding: 16px; }
+  .stats-row { flex-wrap: wrap; }
+  .stat-card { min-width: calc(50% - 7px); }
+  .appliance-grid { grid-template-columns: 1fr; }
+  .detail-panel { width: 100%; left: 0; }
+  .form-row { grid-template-columns: 1fr; }
+  .topbar { display: none; }
+}
+.mobile-header { display: none; }
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 99;
+}
+.sidebar-overlay.open { display: block; }
+
+.photo-thumb { width: 100%; max-height: 140px; object-fit: cover; border-radius: 8px; margin-bottom: 12px; }
+.text-muted { color: var(--text-muted); }
+.text-sm { font-size: 12px; }
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="wordmark">Home Base</div>
+    <div class="tagline">Appliance Tracker</div>
+  </div>
+
+  <div class="house-selector">
+    <label>ACTIVE HOUSE</label>
+    <select id="houseSelect" onchange="onHouseChange()">
+      <option value="Allison" selected>🏠 Allison</option>
+      <option value="Karmel">🏡 Karmel</option>
+    </select>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">CATEGORIES</div>
+    <div class="nav-item active" onclick="setCategory('all')" id="nav-all">
+      <span class="nav-dot" style="background:#4A90C4"></span>
+      All Appliances
+      <span class="nav-count" id="count-all">0</span>
+    </div>
+    <div class="nav-item" onclick="setCategory('Kitchen')" id="nav-Kitchen">
+      <span class="nav-dot" style="background:var(--cat-kitchen)"></span>
+      Kitchen
+      <span class="nav-count" id="count-Kitchen">0</span>
+    </div>
+    <div class="nav-item" onclick="setCategory('Laundry')" id="nav-Laundry">
+      <span class="nav-dot" style="background:var(--cat-laundry)"></span>
+      Laundry
+      <span class="nav-count" id="count-Laundry">0</span>
+    </div>
+    <div class="nav-item" onclick="setCategory('HVAC')" id="nav-HVAC">
+      <span class="nav-dot" style="background:var(--cat-hvac)"></span>
+      HVAC / Mechanicals
+      <span class="nav-count" id="count-HVAC">0</span>
+    </div>
+    <div class="nav-item" onclick="setCategory('Garage')" id="nav-Garage">
+      <span class="nav-dot" style="background:var(--cat-garage)"></span>
+      Garage / Outdoor
+      <span class="nav-count" id="count-Garage">0</span>
+    </div>
+    <div class="nav-item" onclick="setCategory('Computers')" id="nav-Computers">
+      <span class="nav-dot" style="background:var(--cat-computers)"></span>
+      Computers &amp; Printers
+      <span class="nav-count" id="count-Computers">0</span>
+    </div>
+    <div class="nav-item" onclick="setCategory('Other')" id="nav-Other">
+      <span class="nav-dot" style="background:var(--cat-other)"></span>
+      Other
+      <span class="nav-count" id="count-Other">0</span>
+    </div>
+  </nav>
+</aside>
+
+<!-- MOBILE HEADER -->
+<div class="mobile-header">
+  <button class="btn btn-icon" onclick="openSidebar()" style="color:#fff">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+  <span class="wordmark">Home Base</span>
+  <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff" onclick="openAddModal()">+ Add</button>
+</div>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <h1 id="pageTitle">All Appliances</h1>
+    <span class="house-badge" id="houseBadge">🏠 Allison</span>
+    <button class="btn btn-primary" onclick="openAddModal()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Add Appliance
+    </button>
+  </div>
+
+  <div class="content">
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-val" id="statTotal">0</div>
+        <div class="stat-label">Total Appliances</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="statLogs">0</div>
+        <div class="stat-label">Maintenance Records</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="statParts">0</div>
+        <div class="stat-label">Parts Tracked</div>
+      </div>
+    </div>
+
+    <div class="search-row">
+      <div class="search-wrap">
+        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="searchInput" placeholder="Search appliances…" oninput="renderList()" />
+      </div>
+    </div>
+
+    <div class="appliance-grid" id="applianceGrid"></div>
+    <div id="emptyState" class="empty-state" style="display:none">
+      <div class="empty-icon">🏠</div>
+      <h3>No appliances yet</h3>
+      <p>Add your first appliance by photographing its label or entering details manually.</p>
+      <button class="btn btn-primary" onclick="openAddModal()">Add First Appliance</button>
+    </div>
+  </div>
+</main>
+
+<!-- DETAIL PANEL -->
+<div class="detail-panel" id="detailPanel">
+  <div class="detail-header">
+    <div class="detail-header-info">
+      <div class="detail-cat" id="detailCat"></div>
+      <h2 id="detailName"></h2>
+      <div class="detail-model" id="detailModel"></div>
+    </div>
+    <button class="detail-close" onclick="closeDetail()">×</button>
+  </div>
+  <div class="detail-tabs">
+    <div class="detail-tab active" onclick="switchTab('info')">Info</div>
+    <div class="detail-tab" onclick="switchTab('log')">Maintenance</div>
+    <div class="detail-tab" onclick="switchTab('parts')">Parts</div>
+    <div class="detail-tab" onclick="switchTab('ai')">Ask AI</div>
+  </div>
+  <div class="detail-body" id="detailBody"></div>
+</div>
+
+<!-- ADD APPLIANCE MODAL -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Add Appliance</h2>
+      <div class="modal-close" onclick="closeAddModal()">×</div>
+    </div>
+    <div class="modal-body">
+      <div class="add-tabs">
+        <div class="add-tab active" onclick="setAddMode('scan')" id="tab-scan">📸 Photo Scan</div>
+        <div class="add-tab" onclick="setAddMode('manual')" id="tab-manual">✏️ Manual Entry</div>
+      </div>
+
+      <div id="scanSection">
+        <div class="scan-zone" onclick="document.getElementById('labelPhoto').click()">
+          <div class="scan-icon">📷</div>
+          <p><strong>Tap to photograph the appliance label</strong></p>
+          <p>AI will extract make, model, serial number, and type</p>
+          <input type="file" id="labelPhoto" accept="image/*" capture="environment" onchange="handleLabelPhoto()" />
+        </div>
+        <div class="ai-thinking" id="aiThinking">
+          <div class="spinner"></div>
+          <span>Reading label with AI…</span>
+        </div>
+        <img id="labelPreview" class="photo-thumb" style="display:none" />
+      </div>
+
+      <div id="formSection">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Appliance Name *</label>
+            <input type="text" id="fName" placeholder="e.g. Refrigerator" />
+          </div>
+          <div class="form-group">
+            <label>Category *</label>
+            <select id="fCategory">
+              <option value="">Select…</option>
+              <option value="Kitchen">Kitchen</option>
+              <option value="Laundry">Laundry</option>
+              <option value="HVAC">HVAC / Mechanicals</option>
+              <option value="Garage">Garage / Outdoor</option>
+              <option value="Computers">Computers &amp; Printers</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Make / Brand</label>
+            <input type="text" id="fMake" placeholder="e.g. LG" />
+          </div>
+          <div class="form-group">
+            <label>Model Number</label>
+            <input type="text" id="fModel" placeholder="e.g. LRMVS3006S" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Serial Number</label>
+            <input type="text" id="fSerial" placeholder="e.g. 304MRJJ29345" />
+          </div>
+          <div class="form-group">
+            <label>Purchase Date</label>
+            <input type="date" id="fPurchaseDate" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Warranty Expires</label>
+            <input type="date" id="fWarrantyExpiry" />
+          </div>
+          <div class="form-group">
+            <label>Location in Home</label>
+            <input type="text" id="fLocation" placeholder="e.g. Main Kitchen" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Manual URL (optional)</label>
+          <input type="url" id="fManualUrl" placeholder="https://…" />
+          <div class="form-hint">Link to online manual or Google Drive PDF</div>
+        </div>
+        <div class="form-group">
+          <label>Or Upload Manual PDF</label>
+          <input type="file" id="fManualPdf" accept="application/pdf" />
+          <div class="form-hint">PDF stored in browser for AI-powered Q&amp;A</div>
+        </div>
+        <div class="form-group">
+          <label>Notes</label>
+          <textarea id="fNotes" placeholder="Any additional details…"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeAddModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveAppliance()">Save Appliance</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD LOG MODAL -->
+<div class="modal-overlay" id="logModal">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-header">
+      <h2>Add Maintenance Record</h2>
+      <div class="modal-close" onclick="document.getElementById('logModal').classList.remove('open')">×</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Date *</label>
+        <input type="date" id="lDate" />
+      </div>
+      <div class="form-group">
+        <label>Type</label>
+        <select id="lType">
+          <option value="Service">Service / Tune-up</option>
+          <option value="Repair">Repair</option>
+          <option value="Filter Change">Filter Change</option>
+          <option value="Inspection">Inspection</option>
+          <option value="Cleaning">Cleaning</option>
+          <option value="Install">Install / Setup</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="lNotes" placeholder="What was done?"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Cost ($)</label>
+        <input type="number" id="lCost" placeholder="0.00" step="0.01" min="0" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('logModal').classList.remove('open')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveLog()">Save Record</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD PART MODAL -->
+<div class="modal-overlay" id="partModal">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-header">
+      <h2>Add Part</h2>
+      <div class="modal-close" onclick="document.getElementById('partModal').classList.remove('open')">×</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Part Name *</label>
+        <input type="text" id="pName" placeholder="e.g. Water Filter" />
+      </div>
+      <div class="form-group">
+        <label>Part Number</label>
+        <input type="text" id="pNumber" placeholder="e.g. LT1000P" />
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="pNotes" placeholder="Where to buy, compatibility notes…" style="min-height:60px"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('partModal').classList.remove('open')">Cancel</button>
+      <button class="btn btn-primary" onclick="savePart()">Save Part</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// CONFIGURATION
+// ============================================================
+const WORKER_URL = 'https://grasse-apps-proxy.ed-53c.workers.dev';
+const APP_ID     = 'homebase';
+
+// ============================================================
+// STATE
+// ============================================================
+let state = {
+  house: 'Allison',
+  category: 'all',
+  appliances: [],
+  logs: [],
+  parts: [],
+  manualPdfs: {}, // applianceId → { base64, name } — session only, never persisted
+  currentApplianceId: null,
+  currentTab: 'info',
+  chatHistory: {},
+  addMode: 'scan',
+  scannedPhotoBase64: null,
+};
+
+// ============================================================
+// WORKER — Supabase data calls
+// ============================================================
+async function workerCall(payload) {
+  const r = await fetch(WORKER_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ appId: APP_ID, ...payload })
+  });
+  if (!r.ok) throw new Error('Worker error: ' + r.status);
+  return r.json();
+}
+
+async function sbGet(table, filters)  { return workerCall({ method: 'SELECT', table, filters: filters || '' }); }
+async function sbInsert(table, row)   { return workerCall({ method: 'INSERT', table, data: row }); }
+async function sbDelete(table, id)    { return workerCall({ method: 'DELETE', table, idField: 'id', idValue: id }); }
+
+// Delete all rows matching a field value (for cascading deletes)
+async function sbDeleteWhere(table, field, value) {
+  return workerCall({ method: 'DELETE', table, idField: field, idValue: value });
+}
+
+// ============================================================
+// WORKER — AI calls (all Claude requests through Worker)
+// ============================================================
+async function workerAI(homebaseMode, payload) {
+  const r = await fetch(WORKER_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      appId: APP_ID,
+      method: 'CLAUDE_API',
+      claudeMethod: 'homebaseAI',
+      homebaseMode,
+      ...payload
+    })
+  });
+  if (!r.ok) throw new Error('Worker error: ' + r.status);
+  return r.json();
+}
+
+// ============================================================
+// SUPABASE DATA LAYER
+// Converts between app camelCase and Supabase snake_case
+// ============================================================
+function rowToAppliance(r) {
+  return {
+    id:             r.id,
+    house:          r.house,
+    name:           r.name,
+    category:       r.category,
+    make:           r.make,
+    model:          r.model,
+    serial:         r.serial,
+    purchaseDate:   r.purchase_date,
+    warrantyExpiry: r.warranty_expiry,
+    location:       r.location,
+    manualUrl:      r.manual_url,
+    hasManualPdf:   r.has_manual_pdf,
+    notes:          r.notes,
+    photoBase64:    r.photo_base64,
+    createdAt:      r.created_at,
+  };
+}
+
+function applianceToRow(a) {
+  return {
+    id:              a.id,
+    house:           a.house,
+    name:            a.name,
+    category:        a.category,
+    make:            a.make            || null,
+    model:           a.model           || null,
+    serial:          a.serial          || null,
+    purchase_date:   a.purchaseDate    || null,
+    warranty_expiry: a.warrantyExpiry  || null,
+    location:        a.location        || null,
+    manual_url:      a.manualUrl       || null,
+    has_manual_pdf:  a.hasManualPdf    || false,
+    notes:           a.notes           || null,
+    photo_base64:    a.photoBase64     || null,
+  };
+}
+
+function rowToLog(r) {
+  return {
+    id:          r.id,
+    applianceId: r.appliance_id,
+    house:       r.house,
+    date:        r.date,
+    type:        r.type,
+    notes:       r.notes,
+    cost:        r.cost,
+  };
+}
+
+function logToRow(l) {
+  return {
+    id:           l.id,
+    appliance_id: l.applianceId,
+    house:        l.house,
+    date:         l.date  || null,
+    type:         l.type  || null,
+    notes:        l.notes || null,
+    cost:         l.cost  ? parseFloat(l.cost) : null,
+  };
+}
+
+function rowToPart(r) {
+  return {
+    id:          r.id,
+    applianceId: r.appliance_id,
+    house:       r.house,
+    name:        r.name,
+    number:      r.number,
+    notes:       r.notes,
+  };
+}
+
+function partToRow(p) {
+  return {
+    id:           p.id,
+    appliance_id: p.applianceId,
+    house:        p.house,
+    name:         p.name,
+    number:       p.number || null,
+    notes:        p.notes  || null,
+  };
+}
+
+// ── Load all data for current house ──
+async function loadFromSupabase() {
+  showLoadingOverlay(true);
+  try {
+    const [appRows, logRows, partRows] = await Promise.all([
+      sbGet('HomeBaseAppliances', `house=eq.${encodeURIComponent(state.house)}&order=created_at.asc`),
+      sbGet('HomeBaseLogs',       `house=eq.${encodeURIComponent(state.house)}&order=date.desc`),
+      sbGet('HomeBaseParts',      `house=eq.${encodeURIComponent(state.house)}&order=created_at.asc`),
+    ]);
+    state.appliances = Array.isArray(appRows)  ? appRows.map(rowToAppliance)  : [];
+    state.logs       = Array.isArray(logRows)  ? logRows.map(rowToLog)        : [];
+    state.parts      = Array.isArray(partRows) ? partRows.map(rowToPart)      : [];
+  } catch(err) {
+    showToast('Could not load data: ' + err.message, 'error');
+    state.appliances = [];
+    state.logs       = [];
+    state.parts      = [];
+  } finally {
+    showLoadingOverlay(false);
+  }
+}
+
+// ============================================================
+// LOADING OVERLAY
+// ============================================================
+function showLoadingOverlay(show) {
+  let ov = document.getElementById('loadingOverlay');
+  if (!ov) {
+    ov = document.createElement('div');
+    ov.id = 'loadingOverlay';
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(239,244,249,0.88);z-index:9000;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;font-size:14px;color:#1E3A5F;font-family:DM Sans,sans-serif;font-weight:500';
+    ov.innerHTML = '<div style="width:28px;height:28px;border:3px solid #4A90C4;border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite"></div><span>Loading…</span>';
+    document.body.appendChild(ov);
+  }
+  ov.style.display = show ? 'flex' : 'none';
+}
+
+// ============================================================
+// HOUSE SWITCH
+// ============================================================
+async function onHouseChange() {
+  state.house    = document.getElementById('houseSelect').value;
+  state.category = 'all';
+  state.currentApplianceId = null;
+  closeDetail();
+  document.getElementById('houseBadge').textContent = state.house === 'Allison' ? '🏠 Allison' : '🏡 Karmel';
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('nav-all').classList.add('active');
+  document.getElementById('pageTitle').textContent = 'All Appliances';
+  await loadFromSupabase();
+  updateCounts();
+  renderList();
+}
+
+// ============================================================
+// CATEGORY NAV
+// ============================================================
+const CATEGORIES = ['all','Kitchen','Laundry','HVAC','Garage','Computers','Other'];
+const CAT_LABELS = {
+  all:'All Appliances', Kitchen:'Kitchen', Laundry:'Laundry',
+  HVAC:'HVAC / Mechanicals', Garage:'Garage / Outdoor',
+  Computers:'Computers & Printers', Other:'Other'
+};
+
+function setCategory(cat) {
+  state.category = cat;
+  CATEGORIES.forEach(c => {
+    const el = document.getElementById('nav-' + c);
+    if (el) el.classList.toggle('active', c === cat);
+  });
+  document.getElementById('pageTitle').textContent = CAT_LABELS[cat] || cat;
+  renderList();
+  if (window.innerWidth <= 768) closeSidebar();
+}
+
+function updateCounts() {
+  document.getElementById('count-all').textContent = state.appliances.length;
+  ['Kitchen','Laundry','HVAC','Garage','Computers','Other'].forEach(cat => {
+    const el = document.getElementById('count-' + cat);
+    if (el) el.textContent = state.appliances.filter(a => a.category === cat).length;
+  });
+  document.getElementById('statTotal').textContent = state.appliances.length;
+  document.getElementById('statLogs').textContent  = state.logs.length;
+  document.getElementById('statParts').textContent = state.parts.length;
+}
+
+// ============================================================
+// RENDER LIST
+// ============================================================
+const CAT_COLORS = {
+  Kitchen:'var(--cat-kitchen)', Laundry:'var(--cat-laundry)', HVAC:'var(--cat-hvac)',
+  Garage:'var(--cat-garage)', Computers:'var(--cat-computers)', Other:'var(--cat-other)'
+};
+
+function renderList() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  let list = state.appliances;
+  if (state.category !== 'all') list = list.filter(a => a.category === state.category);
+  if (search) list = list.filter(a =>
+    (a.name||'').toLowerCase().includes(search) ||
+    (a.make||'').toLowerCase().includes(search) ||
+    (a.model||'').toLowerCase().includes(search) ||
+    (a.serial||'').toLowerCase().includes(search)
+  );
+
+  const grid  = document.getElementById('applianceGrid');
+  const empty = document.getElementById('emptyState');
+
+  if (!list.length) {
+    grid.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  grid.innerHTML = list.map(a => {
+    const logCount = state.logs.filter(l => l.applianceId === a.id).length;
+    const color = CAT_COLORS[a.category] || 'var(--cat-other)';
+    const sub   = a.purchaseDate ? 'Purchased ' + fmtDate(a.purchaseDate) : (a.location || '');
+    return `
+    <div class="appliance-card" style="border-left-color:${color}" onclick="openDetail('${a.id}')">
+      <div class="card-body">
+        <div class="card-cat">${esc(a.category || 'Other')}</div>
+        <div class="card-name">${esc(a.name)}</div>
+        <div class="card-model">${a.make ? esc(a.make) + ' ' : ''}${a.model ? esc(a.model) : (a.make ? '' : 'No model on file')}</div>
+      </div>
+      <div class="card-footer">
+        <span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:3px;vertical-align:-1px"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          ${logCount} record${logCount !== 1 ? 's' : ''}
+        </span>
+        <span>${esc(sub)}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+// ADD MODAL
+// ============================================================
+function openAddModal() {
+  clearAddForm();
+  document.getElementById('addModal').classList.add('open');
+}
+function closeAddModal() {
+  document.getElementById('addModal').classList.remove('open');
+  state.scannedPhotoBase64 = null;
+}
+
+function setAddMode(mode) {
+  state.addMode = mode;
+  document.getElementById('tab-scan').classList.toggle('active', mode === 'scan');
+  document.getElementById('tab-manual').classList.toggle('active', mode === 'manual');
+  document.getElementById('scanSection').style.display = mode === 'scan' ? 'block' : 'none';
+}
+
+function clearAddForm() {
+  ['fName','fMake','fModel','fSerial','fManualUrl','fNotes','fLocation'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('fCategory').selectedIndex = 0;
+  document.getElementById('fPurchaseDate').value = '';
+  document.getElementById('fWarrantyExpiry').value = '';
+  document.getElementById('fManualPdf').value = '';
+  document.getElementById('labelPreview').style.display = 'none';
+  document.getElementById('aiThinking').classList.remove('show');
+  state.scannedPhotoBase64 = null;
+  setAddMode('scan');
+}
+
+// ── Photo scan ──
+function handleLabelPhoto() {
+  const file = document.getElementById('labelPhoto').files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const dataUrl = e.target.result;
+    const base64  = dataUrl.split(',')[1];
+    state.scannedPhotoBase64 = base64;
+    const preview = document.getElementById('labelPreview');
+    preview.src = dataUrl;
+    preview.style.display = 'block';
+    scanLabelWithAI(base64, file.type);
+  };
+  reader.readAsDataURL(file);
+}
+
+async function scanLabelWithAI(base64, mediaType) {
+  document.getElementById('aiThinking').classList.add('show');
+  try {
+    const data = await workerAI('scanLabel', { base64Data: base64, mediaType });
+    if (data.error) throw new Error(data.error);
+    const result = data.result;
+    if (result.name)     document.getElementById('fName').value     = result.name;
+    if (result.category) document.getElementById('fCategory').value = result.category;
+    if (result.make)     document.getElementById('fMake').value     = result.make;
+    if (result.model)    document.getElementById('fModel').value    = result.model;
+    if (result.serial)   document.getElementById('fSerial').value   = result.serial;
+    if (result.notes)    document.getElementById('fNotes').value    = result.notes;
+    showToast('Label scanned — review and save', 'success');
+  } catch(err) {
+    showToast('Could not read label — enter details manually', 'error');
+    setAddMode('manual');
+  } finally {
+    document.getElementById('aiThinking').classList.remove('show');
+  }
+}
+
+// ── Save appliance to Supabase ──
+async function saveAppliance() {
+  const name     = document.getElementById('fName').value.trim();
+  const category = document.getElementById('fCategory').value;
+  if (!name) { showToast('Appliance name is required', 'error'); return; }
+
+  const pdfFile = document.getElementById('fManualPdf').files[0];
+  let manualPdfBase64 = null;
+  if (pdfFile) manualPdfBase64 = await readFileAsBase64(pdfFile);
+
+  const appliance = {
+    id:             'app_' + Date.now(),
+    house:          state.house,
+    name,
+    category:       category || 'Other',
+    make:           document.getElementById('fMake').value.trim(),
+    model:          document.getElementById('fModel').value.trim(),
+    serial:         document.getElementById('fSerial').value.trim(),
+    purchaseDate:   document.getElementById('fPurchaseDate').value,
+    warrantyExpiry: document.getElementById('fWarrantyExpiry').value,
+    location:       document.getElementById('fLocation').value.trim(),
+    manualUrl:      document.getElementById('fManualUrl').value.trim(),
+    hasManualPdf:   !!manualPdfBase64,
+    notes:          document.getElementById('fNotes').value.trim(),
+    photoBase64:    state.scannedPhotoBase64,
+    createdAt:      new Date().toISOString(),
+  };
+
+  try {
+    await sbInsert('HomeBaseAppliances', applianceToRow(appliance));
+  } catch(err) {
+    showToast('Save failed: ' + err.message, 'error');
+    return;
+  }
+
+  if (manualPdfBase64) {
+    state.manualPdfs[appliance.id] = { base64: manualPdfBase64, name: pdfFile.name };
+  }
+
+  state.appliances.push(appliance);
+  updateCounts();
+  renderList();
+  closeAddModal();
+  showToast('Appliance saved', 'success');
+}
+
+// ============================================================
+// DETAIL PANEL
+// ============================================================
+function openDetail(id) {
+  state.currentApplianceId = id;
+  state.currentTab = 'info';
+  const a = state.appliances.find(x => x.id === id);
+  if (!a) return;
+
+  document.getElementById('detailCat').textContent   = a.category || 'Other';
+  document.getElementById('detailName').textContent  = a.name;
+  document.getElementById('detailModel').textContent = [a.make, a.model].filter(Boolean).join(' · ') || 'No model on file';
+
+  const color = CAT_COLORS[a.category] || 'var(--cat-other)';
+  document.getElementById('detailCat').style.color = color;
+
+  document.querySelectorAll('.detail-tab').forEach((t, i) => t.classList.toggle('active', i === 0));
+  document.getElementById('detailPanel').classList.add('open');
+  renderDetailBody();
+}
+
+function closeDetail() {
+  document.getElementById('detailPanel').classList.remove('open');
+  state.currentApplianceId = null;
+}
+
+function switchTab(tab) {
+  state.currentTab = tab;
+  const tabs = ['info','log','parts','ai'];
+  document.querySelectorAll('.detail-tab').forEach((t, i) => t.classList.toggle('active', tabs[i] === tab));
+  renderDetailBody();
+}
+
+function renderDetailBody() {
+  const a = state.appliances.find(x => x.id === state.currentApplianceId);
+  if (!a) return;
+  const body = document.getElementById('detailBody');
+  if      (state.currentTab === 'info')  body.innerHTML = renderInfoTab(a);
+  else if (state.currentTab === 'log')   body.innerHTML = renderLogTab(a);
+  else if (state.currentTab === 'parts') body.innerHTML = renderPartsTab(a);
+  else if (state.currentTab === 'ai')  { body.innerHTML = renderAITab(a); initChat(a); }
+}
+
+function renderInfoTab(a) {
+  const rows = [
+    ['Make / Brand', a.make],
+    ['Model Number', a.model],
+    ['Serial Number', a.serial],
+    ['Location', a.location],
+    ['Purchase Date', a.purchaseDate ? fmtDate(a.purchaseDate) : null],
+    ['Warranty Expires', a.warrantyExpiry ? fmtDate(a.warrantyExpiry) : null],
+    ['Notes', a.notes],
+  ].filter(([,v]) => v);
+
+  const manualSection = (a.manualUrl || a.hasManualPdf) ? `
+    <div class="info-section">
+      <h3>Manual</h3>
+      ${a.hasManualPdf ? `<div class="manual-card">
+        <div class="manual-icon">📄</div>
+        <div class="manual-info">
+          <div class="manual-name">${esc(state.manualPdfs[a.id]?.name || 'Manual PDF')}</div>
+          <div class="manual-type">PDF · Available for AI Q&amp;A this session</div>
+        </div>
+      </div>` : ''}
+      ${a.manualUrl ? `<div class="manual-card">
+        <div class="manual-icon">🔗</div>
+        <div class="manual-info">
+          <div class="manual-name">Online Manual</div>
+          <div class="manual-type">${esc(a.manualUrl.substring(0,50))}${a.manualUrl.length>50?'…':''}</div>
+        </div>
+        <a href="${esc(a.manualUrl)}" target="_blank" rel="noopener" class="btn btn-sm btn-ghost">Open</a>
+      </div>` : ''}
+    </div>` : '';
+
+  return `
+    ${a.photoBase64 ? `<img src="data:image/jpeg;base64,${a.photoBase64}" class="photo-thumb" />` : ''}
+    <div class="info-section">
+      <h3>Details</h3>
+      ${rows.map(([label, value]) => `
+        <div class="info-row">
+          <span class="info-label">${esc(label)}</span>
+          <span class="info-value">${esc(value)}</span>
+        </div>`).join('')}
+      ${rows.length === 0 ? '<p class="text-muted text-sm">No details on file.</p>' : ''}
+    </div>
+    ${manualSection}
+    <div style="margin-top:8px">
+      <button class="btn btn-sm btn-danger" onclick="deleteAppliance('${a.id}')">🗑 Delete Appliance</button>
+    </div>`;
+}
+
+function renderLogTab(a) {
+  const logs = state.logs.filter(l => l.applianceId === a.id).sort((x,y) => (y.date||'').localeCompare(x.date||''));
+  return `
+    <button class="btn btn-primary btn-sm" onclick="openLogModal('${a.id}')" style="margin-bottom:16px">+ Add Record</button>
+    ${logs.length ? logs.map(l => `
+      <div class="log-entry">
+        <div class="log-date">${fmtDate(l.date)}</div>
+        <span class="log-type">${esc(l.type)}</span>
+        ${l.notes ? `<div class="log-notes">${esc(l.notes)}</div>` : ''}
+        ${l.cost  ? `<div class="log-cost">$${parseFloat(l.cost).toFixed(2)}</div>` : ''}
+        <div style="margin-top:6px">
+          <button class="btn btn-sm btn-danger" onclick="deleteLog('${l.id}')">Delete</button>
+        </div>
+      </div>`).join('')
+    : '<p class="text-muted text-sm">No maintenance records yet.</p>'}`;
+}
+
+function renderPartsTab(a) {
+  const parts = state.parts.filter(p => p.applianceId === a.id);
+  return `
+    <button class="btn btn-primary btn-sm" onclick="openPartModal('${a.id}')" style="margin-bottom:16px">+ Add Part</button>
+    ${parts.length ? parts.map(p => `
+      <div class="part-row">
+        <div class="part-name">${esc(p.name)}</div>
+        ${p.number ? `<div class="part-number">${esc(p.number)}</div>` : ''}
+        <button class="btn btn-sm btn-danger" onclick="deletePart('${p.id}')">×</button>
+      </div>`).join('')
+    : '<p class="text-muted text-sm">No parts tracked yet.</p>'}`;
+}
+
+function renderAITab(a) {
+  const hasManual = a.hasManualPdf || a.manualUrl;
+  return `
+    <div class="ai-chat" style="height:calc(100vh - 260px)">
+      ${hasManual
+        ? `<div class="manual-notice">📄 Manual available — AI answers use it as context.</div>`
+        : `<div class="manual-notice" style="background:#FEF9EC;border-color:#D97706;color:#92400E">💡 No manual on file. Add a PDF or URL on the Info tab for more accurate answers.</div>`
+      }
+      <div class="chat-messages" id="chatMessages"></div>
+      <div class="ai-thinking" id="chatThinking" style="margin-bottom:0">
+        <div class="spinner"></div>
+        <span>AI is thinking…</span>
+      </div>
+      <div class="chat-input-row">
+        <textarea id="chatInput" placeholder="Ask anything about this ${esc(a.name)}…" rows="1"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat();}"></textarea>
+        <button class="btn btn-primary" onclick="sendChat()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
+    </div>`;
+}
+
+// ── Chat ──
+function initChat(a) {
+  if (!state.chatHistory[a.id]) state.chatHistory[a.id] = [];
+  renderChatMessages(a.id);
+}
+
+function renderChatMessages(id) {
+  const msgs = document.getElementById('chatMessages');
+  if (!msgs) return;
+  const history = state.chatHistory[id] || [];
+  if (!history.length) {
+    msgs.innerHTML = '<p class="text-muted text-sm" style="padding:8px">Ask a question about maintenance, troubleshooting, or specs.</p>';
+    return;
+  }
+  msgs.innerHTML = history.map(m => `<div class="chat-msg ${m.role === 'user' ? 'user' : 'ai'}">${esc(m.content)}</div>`).join('');
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+async function sendChat() {
+  const id = state.currentApplianceId;
+  const a  = state.appliances.find(x => x.id === id);
+  if (!a) return;
+  const input    = document.getElementById('chatInput');
+  const question = (input.value || '').trim();
+  if (!question) return;
+
+  if (!state.chatHistory[id]) state.chatHistory[id] = [];
+  state.chatHistory[id].push({ role: 'user', content: question });
+  input.value = '';
+  renderChatMessages(id);
+
+  const el = document.getElementById('chatThinking');
+  if (el) el.classList.add('show');
+
+  try {
+    const manualPdf   = state.manualPdfs[id];
+    const history     = state.chatHistory[id];
+    const recent      = history.slice(-7, -1);
+    const systemPrompt = `You are a helpful home appliance assistant. The user is asking about their ${a.name}${a.make ? ' ('+a.make : ''}${a.model ? ' '+a.model : ''}${a.make ? ')' : ''}. Answer concisely and practically. If you don't know something specific, say so and suggest checking the manual.`;
+
+    const data = await workerAI('chat', {
+      messages: [
+        ...recent.map(m => ({ role: m.role, content: m.content })),
+        { role: 'user', content: question }
+      ],
+      systemPrompt,
+      manualBase64: manualPdf ? manualPdf.base64 : null,
+    });
+
+    const aiText = data.text || "Sorry, I couldn't get a response.";
+    state.chatHistory[id].push({ role: 'assistant', content: aiText });
+    renderChatMessages(id);
+  } catch(err) {
+    state.chatHistory[id].push({ role: 'assistant', content: 'Error: ' + err.message });
+    renderChatMessages(id);
+  } finally {
+    const el2 = document.getElementById('chatThinking');
+    if (el2) el2.classList.remove('show');
+  }
+}
+
+// ============================================================
+// LOG MODAL
+// ============================================================
+let pendingLogApplianceId = null;
+
+function openLogModal(applianceId) {
+  pendingLogApplianceId = applianceId;
+  document.getElementById('lDate').value = new Date().toISOString().split('T')[0];
+  document.getElementById('lType').selectedIndex = 0;
+  document.getElementById('lNotes').value = '';
+  document.getElementById('lCost').value  = '';
+  document.getElementById('logModal').classList.add('open');
+}
+
+async function saveLog() {
+  const date = document.getElementById('lDate').value;
+  if (!date) { showToast('Date is required', 'error'); return; }
+
+  const log = {
+    id:          'log_' + Date.now(),
+    applianceId: pendingLogApplianceId,
+    house:       state.house,
+    date,
+    type:        document.getElementById('lType').value,
+    notes:       document.getElementById('lNotes').value.trim(),
+    cost:        document.getElementById('lCost').value,
+  };
+
+  try {
+    await sbInsert('HomeBaseLogs', logToRow(log));
+  } catch(err) {
+    showToast('Save failed: ' + err.message, 'error');
+    return;
+  }
+
+  state.logs.unshift(log); // add to front so sort-by-date stays correct
+  updateCounts();
+  document.getElementById('logModal').classList.remove('open');
+  showToast('Record saved', 'success');
+  if (state.currentApplianceId === pendingLogApplianceId) renderDetailBody();
+}
+
+async function deleteLog(id) {
+  try {
+    await sbDelete('HomeBaseLogs', id);
+  } catch(err) {
+    showToast('Delete failed: ' + err.message, 'error');
+    return;
+  }
+  state.logs = state.logs.filter(l => l.id !== id);
+  updateCounts();
+  renderDetailBody();
+  showToast('Record deleted');
+}
+
+// ============================================================
+// PART MODAL
+// ============================================================
+let pendingPartApplianceId = null;
+
+function openPartModal(applianceId) {
+  pendingPartApplianceId = applianceId;
+  document.getElementById('pName').value   = '';
+  document.getElementById('pNumber').value = '';
+  document.getElementById('pNotes').value  = '';
+  document.getElementById('partModal').classList.add('open');
+}
+
+async function savePart() {
+  const name = document.getElementById('pName').value.trim();
+  if (!name) { showToast('Part name is required', 'error'); return; }
+
+  const part = {
+    id:          'part_' + Date.now(),
+    applianceId: pendingPartApplianceId,
+    house:       state.house,
+    name,
+    number:      document.getElementById('pNumber').value.trim(),
+    notes:       document.getElementById('pNotes').value.trim(),
+  };
+
+  try {
+    await sbInsert('HomeBaseParts', partToRow(part));
+  } catch(err) {
+    showToast('Save failed: ' + err.message, 'error');
+    return;
+  }
+
+  state.parts.push(part);
+  updateCounts();
+  document.getElementById('partModal').classList.remove('open');
+  showToast('Part saved', 'success');
+  if (state.currentApplianceId === pendingPartApplianceId) renderDetailBody();
+}
+
+async function deletePart(id) {
+  try {
+    await sbDelete('HomeBaseParts', id);
+  } catch(err) {
+    showToast('Delete failed: ' + err.message, 'error');
+    return;
+  }
+  state.parts = state.parts.filter(p => p.id !== id);
+  updateCounts();
+  renderDetailBody();
+}
+
+// ============================================================
+// DELETE APPLIANCE (cascades logs + parts)
+// ============================================================
+async function deleteAppliance(id) {
+  if (!confirm('Delete this appliance and all its records?')) return;
+
+  // Delete child records first, then the appliance
+  const appLogs  = state.logs.filter(l  => l.applianceId  === id);
+  const appParts = state.parts.filter(p => p.applianceId  === id);
+
+  try {
+    await Promise.all([
+      ...appLogs.map(l  => sbDelete('HomeBaseLogs',  l.id)),
+      ...appParts.map(p => sbDelete('HomeBaseParts', p.id)),
+    ]);
+    await sbDelete('HomeBaseAppliances', id);
+  } catch(err) {
+    showToast('Delete failed: ' + err.message, 'error');
+    return;
+  }
+
+  state.appliances = state.appliances.filter(a => a.id !== id);
+  state.logs       = state.logs.filter(l  => l.applianceId  !== id);
+  state.parts      = state.parts.filter(p => p.applianceId  !== id);
+  delete state.manualPdfs[id];
+  delete state.chatHistory[id];
+  updateCounts();
+  renderList();
+  closeDetail();
+  showToast('Appliance deleted');
+}
+
+// ============================================================
+// MOBILE SIDEBAR
+// ============================================================
+function openSidebar()  {
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('sidebarOverlay').classList.add('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('open');
+}
+
+// ============================================================
+// UTILS
+// ============================================================
+function esc(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function fmtDate(dateStr) {
+  if (!dateStr) return '';
+  const [y,m,d] = dateStr.split('-');
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${months[parseInt(m)-1]} ${parseInt(d)}, ${y}`;
+}
+
+function readFileAsBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload  = e => resolve(e.target.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' ' + type : '');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.className = 'toast'; }, 3000);
+}
+
+// ============================================================
+// INIT — load from Supabase on startup
+// ============================================================
+async function init() {
+  await loadFromSupabase();
+  updateCounts();
+  renderList();
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+}
+
+init();
+</script>
+</body>
+</html>
