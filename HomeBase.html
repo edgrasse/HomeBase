@@ -858,6 +858,78 @@ a { color: inherit; text-decoration: none; }
   </div>
 </div>
 
+<!-- EDIT APPLIANCE MODAL -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Edit Appliance</h2>
+      <div class="modal-close" onclick="document.getElementById('editModal').classList.remove('open')">×</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Appliance Name *</label>
+          <input type="text" id="eName" placeholder="e.g. Refrigerator" />
+        </div>
+        <div class="form-group">
+          <label>Category *</label>
+          <select id="eCategory">
+            <option value="">Select…</option>
+            <option value="Kitchen">Kitchen</option>
+            <option value="Laundry">Laundry</option>
+            <option value="HVAC">HVAC / Mechanicals</option>
+            <option value="Garage">Garage / Outdoor</option>
+            <option value="Computers">Computers &amp; Printers</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Make / Brand</label>
+          <input type="text" id="eMake" placeholder="e.g. LG" />
+        </div>
+        <div class="form-group">
+          <label>Model Number</label>
+          <input type="text" id="eModel" placeholder="e.g. LRMVS3006S" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Serial Number</label>
+          <input type="text" id="eSerial" />
+        </div>
+        <div class="form-group">
+          <label>Purchase Date</label>
+          <input type="date" id="ePurchaseDate" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Warranty Expires</label>
+          <input type="date" id="eWarrantyExpiry" />
+        </div>
+        <div class="form-group">
+          <label>Location in Home</label>
+          <input type="text" id="eLocation" placeholder="e.g. Main Kitchen" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Manual URL</label>
+        <input type="url" id="eManualUrl" placeholder="https://…" />
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="eNotes" placeholder="Any additional details…"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('editModal').classList.remove('open')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
 <!-- ADD LOG MODAL -->
 <div class="modal-overlay" id="logModal">
   <div class="modal" style="max-width:440px">
@@ -1420,8 +1492,9 @@ function renderInfoTab(a) {
       ${rows.length === 0 ? '<p class="text-muted text-sm">No details on file.</p>' : ''}
     </div>
     ${manualSection}
-    <div style="margin-top:8px">
-      <button class="btn btn-sm btn-danger" onclick="deleteAppliance('${a.id}')">🗑 Delete Appliance</button>
+    <div style="margin-top:8px;display:flex;gap:8px">
+      <button class="btn btn-sm btn-secondary" onclick="openEditModal('${a.id}')">✏️ Edit</button>
+      <button class="btn btn-sm btn-danger" onclick="deleteAppliance('${a.id}')">🗑 Delete</button>
     </div>`;
 }
 
@@ -1537,6 +1610,92 @@ async function sendChat() {
     const el2 = document.getElementById('chatThinking');
     if (el2) el2.classList.remove('show');
   }
+}
+
+// ============================================================
+// EDIT MODAL
+// ============================================================
+function openEditModal(id) {
+  const a = state.appliances.find(x => x.id === id);
+  if (!a) return;
+
+  // Pre-fill all fields with current values
+  document.getElementById('eName').value          = a.name         || '';
+  document.getElementById('eCategory').value      = a.category     || '';
+  document.getElementById('eMake').value          = a.make         || '';
+  document.getElementById('eModel').value         = a.model        || '';
+  document.getElementById('eSerial').value        = a.serial       || '';
+  document.getElementById('ePurchaseDate').value  = a.purchaseDate  || '';
+  document.getElementById('eWarrantyExpiry').value= a.warrantyExpiry || '';
+  document.getElementById('eLocation').value      = a.location     || '';
+  document.getElementById('eManualUrl').value     = a.manualUrl    || '';
+  document.getElementById('eNotes').value         = a.notes        || '';
+
+  // Store which appliance is being edited
+  document.getElementById('editModal').dataset.applianceId = id;
+  document.getElementById('editModal').classList.add('open');
+}
+
+async function saveEdit() {
+  const modal = document.getElementById('editModal');
+  const id    = modal.dataset.applianceId;
+  if (!id) return;
+
+  const name = document.getElementById('eName').value.trim();
+  if (!name) { showToast('Appliance name is required', 'error'); return; }
+
+  // Build updated fields
+  const updates = {
+    name,
+    category:        document.getElementById('eCategory').value      || 'Other',
+    make:            document.getElementById('eMake').value.trim()    || null,
+    model:           document.getElementById('eModel').value.trim()   || null,
+    serial:          document.getElementById('eSerial').value.trim()  || null,
+    purchase_date:   document.getElementById('ePurchaseDate').value   || null,
+    warranty_expiry: document.getElementById('eWarrantyExpiry').value || null,
+    location:        document.getElementById('eLocation').value.trim()|| null,
+    manual_url:      document.getElementById('eManualUrl').value.trim()|| null,
+    notes:           document.getElementById('eNotes').value.trim()   || null,
+  };
+
+  try {
+    await workerCall({ method: 'UPDATE', table: 'HomeBaseAppliances', idField: 'id', idValue: id, data: updates });
+  } catch(err) {
+    showToast('Save failed: ' + err.message, 'error');
+    return;
+  }
+
+  // Update in-memory state
+  const idx = state.appliances.findIndex(x => x.id === id);
+  if (idx !== -1) {
+    state.appliances[idx] = {
+      ...state.appliances[idx],
+      name:           updates.name,
+      category:       updates.category,
+      make:           updates.make,
+      model:          updates.model,
+      serial:         updates.serial,
+      purchaseDate:   updates.purchase_date,
+      warrantyExpiry: updates.warranty_expiry,
+      location:       updates.location,
+      manualUrl:      updates.manual_url,
+      notes:          updates.notes,
+    };
+  }
+
+  modal.classList.remove('open');
+  updateCounts();
+  renderList();
+
+  // Refresh the detail panel header + body if this appliance is open
+  if (state.currentApplianceId === id) {
+    const a = state.appliances[idx];
+    document.getElementById('detailName').textContent  = a.name;
+    document.getElementById('detailModel').textContent = [a.make, a.model].filter(Boolean).join(' · ') || 'No model on file';
+    renderDetailBody();
+  }
+
+  showToast('Changes saved', 'success');
 }
 
 // ============================================================

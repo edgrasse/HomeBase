@@ -1,6 +1,6 @@
 // Home Base — Service Worker
 // Bump version on every deploy to force cache refresh
-const CACHE_NAME = 'homebase-v2';
+const CACHE_NAME = 'homebase-v3';
 const STATIC_ASSETS = [
   'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=DM+Sans:wght@400;500;600&display=swap'
 ];
